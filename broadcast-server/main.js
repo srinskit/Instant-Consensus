@@ -70,9 +70,11 @@ function broadcast(data) {
         conns[address].sendUTF(data);
     }
 }
-
-mineCycle = false;
-setInterval(function () {
-    broadcast({ type: mineCycle ? "mine" : "transact", });
-    mineCycle = !mineCycle;
-}, 5000);
+setTimeout(function () {
+    setInterval(function () {
+        broadcast({ type: "transact", });
+        setTimeout(function () {
+            broadcast({ type: "mine" });
+        }, 2500);
+    }, 3000);
+}, 20000);

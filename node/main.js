@@ -9,6 +9,7 @@ var blockchain = [
 ]
 var transactionPool = [];
 var winnerAddress;
+var count = {};
 
 function on_broadcast(data) {
     switch (data.type) {
@@ -45,6 +46,8 @@ function mine() {
         }
     }
     console.log(`Winner: ${nodes[winnerAddress]} - ${winnerAddress}`);
+    count[winnerAddress] = count[winnerAddress] ? count[winnerAddress] + 1 : 1;
+    console.log(count);
     if (winnerAddress === myAddress()) {
         broadcast(makeBlock());
     }
@@ -53,9 +56,9 @@ function mine() {
 function makeBlock() {
     let transactions = [];
     transactionPool.sort((t1, t2) => calcReward(t1) - calcReward(t2));
-    let k = 2, reward = 0;
+    let k = 3, reward = 0;
     for (let i = 0; transactionPool.length && i < k; ++i) {
-        let t = transactionPool.pop();
+        let t = transactionPool[transactionPool.length - i - 1];
         reward += calcReward(t);
         transactions.push(t);
     }
@@ -77,13 +80,15 @@ function handleBlock(block) {
             block,
             hash: hashObj(block)
         });
+        for (let i = 0; i < block.transactions.length; ++i)
+            remove(transactionPool, block.transactions[i]);
         printBlock(block);
         winnerAddress = null;
+        console.log("Pool size:", transactionPool.length);
     }
     else {
         console.warn(`Received unauthorized block by ${block.owner}`);
     }
-
 }
 
 function verifyBlock(block) {
@@ -108,11 +113,15 @@ function makeDummyTransaction() {
         time: (+ new Date() - 10 + Math.floor(Math.random() * 11)),
     }
 
-    broadcast({ type: "transaction", transaction });
+    if (Math.random() > 0.75)
+        broadcast({ type: "transaction", transaction });
 }
 
 function calcReward(transaction) {
-    return transaction.fee;
+    if (transaction)
+        return transaction.fee;
+    else
+        return 0;
 }
 
 function lastBlock() {
@@ -178,6 +187,13 @@ function myAddress() {
 
 function myName() {
     return process.argv[3];
+}
+
+function remove(array, element) {
+    var index = array.indexOf(element);
+    if (index > -1) {
+        array.splice(index, 1);
+    }
 }
 
 switch (process.argv[2]) {
