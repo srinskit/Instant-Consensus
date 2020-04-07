@@ -7,9 +7,20 @@
 A simple relay server to relay messages in the P2P network
 
 ```
-./broadcast-server/main.js
+# Install deps
+cd broadcast-server
+npm install
+
+# Run
+./main.js
 ```
 ## Miner Node
+```
+# Install deps
+cd node
+npm install
+```
+
 #### Create
 ```
 ./node/main.js create [name]
